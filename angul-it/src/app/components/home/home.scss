@@ -1,0 +1,15 @@
+.container {
+  max-width: 440px;
+  margin: 32px auto;
+  padding: 16px;
+}
+.full-width-btn {
+  width: 100%;
+  margin-top: 18px;
+}
+@media (max-width: 600px) {
+  .container {
+    margin: 6vw 2vw;
+    padding: 2vw;
+  }
+}

@@ -1,1 +1,13 @@
-
+<div class="captcha-container" style="text-align: center; margin-top: 4rem;">
+  <h2>{{ challenge.question }}</h2>
+  <input [(ngModel)]="currentAnswer" type="text" placeholder="Type your answer" style="margin-bottom: 1rem;">
+  <div style="color: red;">{{ error }}</div>
+  <div>
+    <button mat-raised-button color="accent" (click)="prev()" [disabled]="challengeService.isFirst" style="margin-right: 1rem;">
+      Previous
+    </button>
+    <button mat-raised-button color="primary" (click)="checkAnswer()" [disabled]="currentAnswer === ''">
+      Next
+    </button>
+  </div>
+</div>

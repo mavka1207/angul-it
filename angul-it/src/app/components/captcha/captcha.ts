@@ -15,7 +15,6 @@ import { ChallengeService } from '../../services/challenge.service';
 export class Captcha implements OnInit {
   private readonly STORAGE_KEY = 'captcha-selection-history';
   
-  // Сохраняем выбор для каждого этапа по id
   private selectionHistory: Map<number, number[]> = new Map();
   
   errorMessage = '';
@@ -25,19 +24,13 @@ export class Captcha implements OnInit {
     private router: Router
   ) {}
 
+trackByUrl(index: number, item: any): string {
+  return item.url;
+}
+
   ngOnInit() {
-    // Загружаем сохранённый выбор из sessionStorage
     this.loadSelectionFromStorage();
-    
-    // Если есть сохранённый выбор, загружаем и сохранённый shuffle
-    // Иначе shuffle уже был создан в конструкторе сервиса (новый случайный)
-    if (this.selectionHistory.size > 0) {
-      const loaded = this.challengeService.loadShuffledFromStorage();
-      if (!loaded) {
-        // Если не удалось загрузить, очищаем выбор (данные несогласованы)
-        this.clearSelectionHistory();
-      }
-    }
+    console.log('Component initialized, selection loaded');
   }
 
   get challenge() {
@@ -58,12 +51,36 @@ export class Captcha implements OnInit {
       currentSelected.splice(idx, 1);
     }
     
-    // Сохраняем изменённый выбор
     this.selectionHistory.set(this.challenge.id, currentSelected);
-    this.saveSelectionToStorage();
     
-    // При первом выборе сохраняем shuffle
-    this.challengeService.saveShuffledToStorage();
+    // Сохраняем или удаляем данные в зависимости от наличия выбора
+    this.updateStorage();
+  }
+
+  private updateStorage() {
+    // Проверяем, есть ли выбор на ТЕКУЩЕМ этапе
+    const currentSelected = this.selected;
+    const hasCurrentSelection = currentSelected.length > 0;
+    
+    if (hasCurrentSelection) {
+      // Сохраняем выбор для всех этапов и shuffle для текущего
+      this.saveSelectionToStorage();
+      this.challengeService.saveCurrentStageShuffle();
+    } else {
+      // Проверяем, остались ли выборы на других этапах
+      const hasAnySelection = Array.from(this.selectionHistory.values()).some(arr => arr.length > 0);
+      
+      if (hasAnySelection) {
+        // Есть выбор на других этапах — просто обновляем storage
+        this.saveSelectionToStorage();
+        // Удаляем shuffle ТОЛЬКО для текущего этапа
+        this.challengeService.clearCurrentStageShuffle();
+      } else {
+        // Нет выбора нигде — удаляем всё
+        this.clearSelectionHistory();
+        console.log('All selections cleared');
+      }
+    }
   }
 
   isValid(): boolean {
@@ -90,9 +107,8 @@ export class Captcha implements OnInit {
       this.challengeService.nextChallenge();
       this.errorMessage = '';
     } else {
-      // Очищаем историю после успешного завершения
       this.clearSelectionHistory();
-      this.challengeService.clearShuffledData();
+      this.challengeService.clearAllShuffleData();
       this.router.navigate(['/result']);
     }
   }
@@ -104,13 +120,11 @@ export class Captcha implements OnInit {
     }
   }
 
-  // Сохраняем выбор в sessionStorage
   private saveSelectionToStorage() {
     const data = Array.from(this.selectionHistory.entries());
     sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
   }
 
-  // Загружаем выбор из sessionStorage
   private loadSelectionFromStorage() {
     const stored = sessionStorage.getItem(this.STORAGE_KEY);
     if (stored) {
@@ -123,9 +137,9 @@ export class Captcha implements OnInit {
     }
   }
 
-  // Очищаем историю выбора
   private clearSelectionHistory() {
     this.selectionHistory.clear();
     sessionStorage.removeItem(this.STORAGE_KEY);
+    this.challengeService.clearAllShuffleData();
   }
 }

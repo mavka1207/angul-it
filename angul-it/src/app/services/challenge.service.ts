@@ -11,10 +11,9 @@ export type Challenge = {
   providedIn: 'root'
 })
 export class ChallengeService {
-  private readonly SHUFFLE_STORAGE_KEY = 'captcha-shuffled-challenges';
+  private readonly SHUFFLE_STORAGE_PREFIX = 'captcha-shuffle-stage-';
   private readonly INDEX_STORAGE_KEY = 'captcha-current-index';
 
-  // Функция для перемешивания массива
   private shuffle<T>(array: T[]): T[] {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -24,7 +23,6 @@ export class ChallengeService {
     return shuffled;
   }
 
-  // Базовые данные (без shuffle)
   private baseChallenges: Challenge[] = [
     {
       id: 1,
@@ -85,7 +83,7 @@ export class ChallengeService {
     }
   ];
 
-  private shuffledChallenges: Challenge[] = [];
+  public shuffledChallenges: Challenge[] = [];
   private _currentIndex = 0;
 
   get currentIndex(): number {
@@ -98,41 +96,67 @@ export class ChallengeService {
   }
 
   constructor() {
-    // Загружаем текущий индекс
     const storedIndex = sessionStorage.getItem(this.INDEX_STORAGE_KEY);
     if (storedIndex) {
       this._currentIndex = parseInt(storedIndex, 10);
     }
     
-    // Инициализируем shuffle
-    this.initializeShuffledChallenges();
+    this.initializeAllChallenges();
   }
 
-  private initializeShuffledChallenges() {
-    this.shuffledChallenges = this.baseChallenges.map(challenge => ({
-      ...challenge,
-      grid: this.shuffle(challenge.grid)
-    }));
+  private initializeAllChallenges() {
+    this.shuffledChallenges = this.baseChallenges.map(challenge => {
+      // Пытаемся загрузить сохранённый shuffle для этого этапа
+      const savedGrid = this.loadShuffleForStage(challenge.id);
+      
+      if (savedGrid) {
+        console.log(`Stage ${challenge.id}: loaded saved shuffle`);
+        return { ...challenge, grid: savedGrid };
+      } else {
+        console.log(`Stage ${challenge.id}: creating new shuffle`);
+        return { ...challenge, grid: this.shuffle(challenge.grid) };
+      }
+    });
   }
 
-  // Загружаем сохранённый shuffle (вызывается из компонента при наличии выбора)
-  loadShuffledFromStorage(): boolean {
-    const stored = sessionStorage.getItem(this.SHUFFLE_STORAGE_KEY);
+  // Загрузить shuffle для конкретного этапа
+  private loadShuffleForStage(stageId: number): any[] | null {
+    const key = this.SHUFFLE_STORAGE_PREFIX + stageId;
+    const stored = sessionStorage.getItem(key);
+    
     if (stored) {
       try {
-        this.shuffledChallenges = JSON.parse(stored);
-        return true;
+        return JSON.parse(stored);
       } catch (e) {
-        console.error('Failed to load shuffled challenges', e);
-        return false;
+        console.error(`Failed to load shuffle for stage ${stageId}`, e);
       }
     }
-    return false;
+    return null;
   }
 
-  // Сохраняем shuffle (вызывается из компонента при первом выборе)
-  saveShuffledToStorage() {
-    sessionStorage.setItem(this.SHUFFLE_STORAGE_KEY, JSON.stringify(this.shuffledChallenges));
+  // Сохранить shuffle для текущего этапа
+  saveCurrentStageShuffle() {
+    const currentChallenge = this.getCurrentChallenge();
+    const key = this.SHUFFLE_STORAGE_PREFIX + currentChallenge.id;
+    sessionStorage.setItem(key, JSON.stringify(currentChallenge.grid));
+    console.log(`Saved shuffle for stage ${currentChallenge.id}`);
+  }
+
+  // Удалить shuffle для текущего этапа
+  clearCurrentStageShuffle() {
+    const currentChallenge = this.getCurrentChallenge();
+    const key = this.SHUFFLE_STORAGE_PREFIX + currentChallenge.id;
+    sessionStorage.removeItem(key);
+    
+    // Пересоздать shuffle для этого этапа
+    const baseChallenge = this.baseChallenges.find(c => c.id === currentChallenge.id);
+    if (baseChallenge) {
+      this.shuffledChallenges[this.currentIndex] = {
+        ...baseChallenge,
+        grid: this.shuffle(baseChallenge.grid)
+      };
+      console.log(`Cleared and reshuffled stage ${currentChallenge.id}`);
+    }
   }
 
   getCurrentChallenge(): Challenge {
@@ -159,8 +183,12 @@ export class ChallengeService {
     }
   }
 
-  clearShuffledData() {
-    sessionStorage.removeItem(this.SHUFFLE_STORAGE_KEY);
+  clearAllShuffleData() {
+    // Удаляем shuffle для всех этапов
+    this.baseChallenges.forEach(challenge => {
+      const key = this.SHUFFLE_STORAGE_PREFIX + challenge.id;
+      sessionStorage.removeItem(key);
+    });
     sessionStorage.removeItem(this.INDEX_STORAGE_KEY);
     this._currentIndex = 0;
   }

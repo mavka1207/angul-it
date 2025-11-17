@@ -1,12 +1,11 @@
-
 <mat-card class="container">
-<mat-card-title>Welcome to Angul-It!</mat-card-title>
+  <mat-card-title>Welcome to Angul-It!</mat-card-title>
   <mat-card-content>
-  <p>
-    Try to pass our multi-stage CAPTCHA. Click to start!
-  </p>
-  <button mat-raised-button color="primary" [routerLink]="['/captcha']" class="full-width-btn">
-    Start Challenge
+    <p>
+      Try to pass our multi-stage CAPTCHA. Click to start!
+    </p>
+    <button mat-raised-button color="primary" (click)="startChallenge()" class="full-width-btn">
+      Start Challenge
     </button>
   </mat-card-content>
 </mat-card>

@@ -55,7 +55,7 @@ export class ChallengeService {
         { url: 'captcha/potion5.png', isPotion: false },
         { url: 'captcha/potion6.png', isPotion: false },
         { url: 'captcha/potion7.png', isPotion: false },
-        { url: 'captcha/potion8.png', isPotion: false },
+        { url: 'captcha/potion8.png', isPotion: true },
         { url: 'captcha/potion9.png', isPotion: false },
         { url: 'captcha/potion10.png', isPotion: false },
         { url: 'captcha/potion11.png', isPotion: false },

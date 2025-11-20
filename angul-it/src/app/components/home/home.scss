@@ -1,15 +1,29 @@
 .container {
-  max-width: 440px;
-  margin: 32px auto;
-  padding: 16px;
+  max-width: 500px;
+  margin: 3rem auto;
+  padding: 2rem;
+  text-align: center;
 }
-.full-width-btn {
+
+.description {
+  font-size: 1.1rem;
+  color: rgba(0, 0, 0, 0.7);
+  margin: 1.5rem 0;
+  line-height: 1.6;
+}
+
+.start-btn {
   width: 100%;
-  margin-top: 18px;
+  max-width: 280px;
+  height: 48px;
+  font-size: 1rem;
+  margin-top: 1rem;
 }
+
+// Responsive для мобильных устройств
 @media (max-width: 600px) {
   .container {
-    margin: 6vw 2vw;
-    padding: 2vw;
+    margin: 2rem 1rem;
+    padding: 1.5rem;
   }
 }

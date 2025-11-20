@@ -20,4 +20,17 @@ describe('Result', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('should show result message', () => {
+  fixture.detectChanges();
+  const msg = fixture.nativeElement.querySelector('.result-message');
+  expect(msg.textContent).toContain('not a bot');
+});
+
+it('should restart on button click', () => {
+  spyOn(component, 'restart');
+  const btn = fixture.nativeElement.querySelector('button');
+  btn.click();
+  expect(component.restart).toHaveBeenCalled();
+});
+
 });

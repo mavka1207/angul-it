@@ -1,8 +1,14 @@
-
-<div class="result-container" style="text-align: center; margin-top: 5rem;">
-  <h2>Congratulations!</h2>
-  <p>You have completed all CAPTCHA challenges 🎉</p>
-  <button mat-raised-button color="primary" [routerLink]="['/']">
-    Return to Home
-  </button>
+<!-- result.html -->
+<div @resultFade>
+<mat-card class="container">
+  <mat-card-title>Congratulations! 🎉</mat-card-title>
+  <mat-card-content>
+    <p class="description">
+      You have successfully completed all CAPTCHA challenges!
+    </p>
+    <button mat-raised-button color="primary" (click)="goHome()" class="home-btn">
+      Return to Home
+    </button>
+  </mat-card-content>
+</mat-card>
 </div>

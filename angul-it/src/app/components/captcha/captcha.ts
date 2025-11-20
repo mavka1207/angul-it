@@ -1,145 +1,140 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
 import { ChallengeService } from '../../services/challenge.service';
+import { Challenge } from '../../models/challenge.model';
+import { STORAGE_KEYS, MESSAGES } from '../../constants/storage-keys';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-captcha',
   standalone: true,
+  imports: [CommonModule, MatButtonModule],
   templateUrl: './captcha.html',
-  styleUrl: './captcha.scss',
-  imports: [FormsModule, MatButtonModule, CommonModule]
+  styleUrls: ['./captcha.scss'],
+  animations: [
+    trigger('challengeAnim', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.9)' }),
+        animate('0.4s cubic-bezier(.53,.7,.42,.96)', style({ opacity: 1, transform: 'scale(1)' }))
+      ]),
+      transition(':leave', [
+        animate('0.3s', style({ opacity: 0, transform: 'scale(0.95)' }))
+      ])
+    ])
+  ]
 })
 export class Captcha implements OnInit {
-  private readonly STORAGE_KEY = 'captcha-selection-history';
-  
-  private selectionHistory: Map<number, number[]> = new Map();
-  
-  errorMessage = '';
+  challenge!: Challenge;
+  selected: number[] = [];
+  error = '';
 
   constructor(
     public challengeService: ChallengeService,
     private router: Router
   ) {}
 
-trackByUrl(index: number, item: any): string {
-  return item.url;
-}
-
-  ngOnInit() {
-    this.loadSelectionFromStorage();
-    console.log('Component initialized, selection loaded');
-  }
-
-  get challenge() {
-    return this.challengeService.getCurrentChallenge();
-  }
-
-  get selected(): number[] {
-    return this.selectionHistory.get(this.challenge.id) || [];
-  }
-
-  selectImage(i: number) {
-    const currentSelected = this.selected;
-    const idx = currentSelected.indexOf(i);
+  ngOnInit(): void {
+    this.challenge = this.challengeService.getCurrentChallenge();
     
-    if (idx === -1) {
-      currentSelected.push(i);
+    const history = this.getSelectionHistory();
+    this.selected = history[this.challengeService.currentIndex] || [];
+  }
+
+  selectImage(index: number): void {
+    const idx = this.selected.indexOf(index);
+    if (idx > -1) {
+      this.selected.splice(idx, 1);
     } else {
-      currentSelected.splice(idx, 1);
+      this.selected.push(index);
     }
-    
-    this.selectionHistory.set(this.challenge.id, currentSelected);
-    
-    // Сохраняем или удаляем данные в зависимости от наличия выбора
+
     this.updateStorage();
+    this.error = '';
   }
 
-  private updateStorage() {
-    // Проверяем, есть ли выбор на ТЕКУЩЕМ этапе
-    const currentSelected = this.selected;
-    const hasCurrentSelection = currentSelected.length > 0;
+  checkAnswer(): void {
+    const correctIndices = this.getCorrectIndices();
+    const isCorrect = 
+      this.selected.length === correctIndices.length &&
+      this.selected.every(i => correctIndices.includes(i));
+
+    if (isCorrect) {
+      this.saveState();
+      
+      if (this.challengeService.isLast) {
+        this.challengeService.clearAllShuffleData();
+        sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
+        this.router.navigate(['/result']);
+      } else {
+        this.challengeService.nextChallenge();
+        this.challenge = this.challengeService.getCurrentChallenge();
+        
+        const history = this.getSelectionHistory();
+        this.selected = history[this.challengeService.currentIndex] || [];
+      }
+    } else {
+      this.error = MESSAGES.INCORRECT_SELECTION;
+    }
+  }
+
+  prev(): void {
+    this.saveState();
+    this.challengeService.prevChallenge();
+    this.challenge = this.challengeService.getCurrentChallenge();
     
-    if (hasCurrentSelection) {
-      // Сохраняем выбор для всех этапов и shuffle для текущего
-      this.saveSelectionToStorage();
+    const history = this.getSelectionHistory();
+    this.selected = history[this.challengeService.currentIndex] || [];
+  }
+
+  trackByUrl(index: number, item: any): string {
+    return item.url;
+  }
+
+  private getCorrectIndices(): number[] {
+    const keyMap: { [key: number]: string } = {
+      1: 'isCat',
+      2: 'isPotion',
+      3: 'isClock'
+    };
+    
+    const key = keyMap[this.challenge.id];
+    return this.challenge.grid
+      .map((img, i) => (img as any)[key] ? i : -1)
+      .filter(i => i !== -1);
+  }
+
+  private saveState(): void {
+    const history = this.getSelectionHistory();
+    history[this.challengeService.currentIndex] = [...this.selected];
+    sessionStorage.setItem(STORAGE_KEYS.SELECTION_HISTORY, JSON.stringify(history));
+    this.challengeService.saveCurrentStageShuffle();
+  }
+
+  private updateStorage(): void {
+    const history = this.getSelectionHistory();
+    history[this.challengeService.currentIndex] = [...this.selected];
+    sessionStorage.setItem(STORAGE_KEYS.SELECTION_HISTORY, JSON.stringify(history));
+
+    if (this.selected.length > 0) {
       this.challengeService.saveCurrentStageShuffle();
     } else {
-      // Проверяем, остались ли выборы на других этапах
-      const hasAnySelection = Array.from(this.selectionHistory.values()).some(arr => arr.length > 0);
-      
-      if (hasAnySelection) {
-        // Есть выбор на других этапах — просто обновляем storage
-        this.saveSelectionToStorage();
-        // Удаляем shuffle ТОЛЬКО для текущего этапа
-        this.challengeService.clearCurrentStageShuffle();
+      const hasOtherSelections = history.some((sel, i) => 
+        i !== this.challengeService.currentIndex && sel.length > 0
+      );
+
+      if (!hasOtherSelections) {
+        this.challengeService.clearAllShuffleData();
+        sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
       } else {
-        // Нет выбора нигде — удаляем всё
-        this.clearSelectionHistory();
-        console.log('All selections cleared');
+        this.challengeService.clearCurrentStageShuffle();
       }
     }
   }
 
-  isValid(): boolean {
-    const correctIndices = this.challenge.grid
-      .map((img, i) => (img.isCat || img.isPotion || img.isClock) ? i : -1)
-      .filter(x => x !== -1);
-    
-    const currentSelected = this.selected;
-    return currentSelected.length === correctIndices.length &&
-           currentSelected.every(idx => correctIndices.includes(idx));
-  }
-
-  checkAnswer() {
-    if (!this.isValid()) {
-      this.errorMessage = 'Incorrect selection. Try again.';
-      return;
-    }
-    this.errorMessage = '';
-    this.next();
-  }
-
-  next() {
-    if (!this.challengeService.isLast) {
-      this.challengeService.nextChallenge();
-      this.errorMessage = '';
-    } else {
-      this.clearSelectionHistory();
-      this.challengeService.clearAllShuffleData();
-      this.router.navigate(['/result']);
-    }
-  }
-
-  prev() {
-    if (!this.challengeService.isFirst) {
-      this.challengeService.prevChallenge();
-      this.errorMessage = '';
-    }
-  }
-
-  private saveSelectionToStorage() {
-    const data = Array.from(this.selectionHistory.entries());
-    sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-  }
-
-  private loadSelectionFromStorage() {
-    const stored = sessionStorage.getItem(this.STORAGE_KEY);
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        this.selectionHistory = new Map(data);
-      } catch (e) {
-        console.error('Failed to load selection history', e);
-      }
-    }
-  }
-
-  private clearSelectionHistory() {
-    this.selectionHistory.clear();
-    sessionStorage.removeItem(this.STORAGE_KEY);
-    this.challengeService.clearAllShuffleData();
+  private getSelectionHistory(): number[][] {
+    const stored = sessionStorage.getItem(STORAGE_KEYS.SELECTION_HISTORY);
+    return stored ? JSON.parse(stored) : [];
   }
 }

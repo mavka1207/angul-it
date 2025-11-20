@@ -1,19 +1,11 @@
 import { Injectable } from '@angular/core';
-
-export type Challenge = {
-  id: number;
-  type: 'selectImages';
-  question: string;
-  grid: { url: string; isCat?: boolean; isPotion?: boolean; isClock?: boolean }[];
-};
+import { Challenge, ImageItem } from '../models/challenge.model';
+import { STORAGE_KEYS } from '../constants/storage-keys';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChallengeService {
-  private readonly SHUFFLE_STORAGE_PREFIX = 'captcha-shuffle-stage-';
-  private readonly INDEX_STORAGE_KEY = 'captcha-current-index';
-
   private shuffle<T>(array: T[]): T[] {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -55,7 +47,7 @@ export class ChallengeService {
         { url: 'captcha/potion5.png', isPotion: false },
         { url: 'captcha/potion6.png', isPotion: false },
         { url: 'captcha/potion7.png', isPotion: false },
-        { url: 'captcha/potion8.png', isPotion: true },
+        { url: 'captcha/potion8.png', isPotion: false },
         { url: 'captcha/potion9.png', isPotion: false },
         { url: 'captcha/potion10.png', isPotion: false },
         { url: 'captcha/potion11.png', isPotion: false },
@@ -92,11 +84,11 @@ export class ChallengeService {
 
   set currentIndex(value: number) {
     this._currentIndex = value;
-    sessionStorage.setItem(this.INDEX_STORAGE_KEY, value.toString());
+    sessionStorage.setItem(STORAGE_KEYS.CURRENT_INDEX, value.toString());
   }
 
   constructor() {
-    const storedIndex = sessionStorage.getItem(this.INDEX_STORAGE_KEY);
+    const storedIndex = sessionStorage.getItem(STORAGE_KEYS.CURRENT_INDEX);
     if (storedIndex) {
       this._currentIndex = parseInt(storedIndex, 10);
     }
@@ -104,9 +96,8 @@ export class ChallengeService {
     this.initializeAllChallenges();
   }
 
-  private initializeAllChallenges() {
+  private initializeAllChallenges(): void {
     this.shuffledChallenges = this.baseChallenges.map(challenge => {
-      // Пытаемся загрузить сохранённый shuffle для этого этапа
       const savedGrid = this.loadShuffleForStage(challenge.id);
       
       if (savedGrid) {
@@ -119,9 +110,8 @@ export class ChallengeService {
     });
   }
 
-  // Загрузить shuffle для конкретного этапа
-  private loadShuffleForStage(stageId: number): any[] | null {
-    const key = this.SHUFFLE_STORAGE_PREFIX + stageId;
+  private loadShuffleForStage(stageId: number): ImageItem[] | null {
+    const key = STORAGE_KEYS.SHUFFLE_PREFIX + stageId;
     const stored = sessionStorage.getItem(key);
     
     if (stored) {
@@ -134,21 +124,18 @@ export class ChallengeService {
     return null;
   }
 
-  // Сохранить shuffle для текущего этапа
-  saveCurrentStageShuffle() {
+  saveCurrentStageShuffle(): void {
     const currentChallenge = this.getCurrentChallenge();
-    const key = this.SHUFFLE_STORAGE_PREFIX + currentChallenge.id;
+    const key = STORAGE_KEYS.SHUFFLE_PREFIX + currentChallenge.id;
     sessionStorage.setItem(key, JSON.stringify(currentChallenge.grid));
     console.log(`Saved shuffle for stage ${currentChallenge.id}`);
   }
 
-  // Удалить shuffle для текущего этапа
-  clearCurrentStageShuffle() {
+  clearCurrentStageShuffle(): void {
     const currentChallenge = this.getCurrentChallenge();
-    const key = this.SHUFFLE_STORAGE_PREFIX + currentChallenge.id;
+    const key = STORAGE_KEYS.SHUFFLE_PREFIX + currentChallenge.id;
     sessionStorage.removeItem(key);
     
-    // Пересоздать shuffle для этого этапа
     const baseChallenge = this.baseChallenges.find(c => c.id === currentChallenge.id);
     if (baseChallenge) {
       this.shuffledChallenges[this.currentIndex] = {
@@ -171,25 +158,24 @@ export class ChallengeService {
     return this.currentIndex === this.shuffledChallenges.length - 1;
   }
 
-  nextChallenge() {
+  nextChallenge(): void {
     if (!this.isLast) {
       this.currentIndex++;
     }
   }
 
-  prevChallenge() {
+  prevChallenge(): void {
     if (!this.isFirst) {
       this.currentIndex--;
     }
   }
 
-  clearAllShuffleData() {
-    // Удаляем shuffle для всех этапов
+  clearAllShuffleData(): void {
     this.baseChallenges.forEach(challenge => {
-      const key = this.SHUFFLE_STORAGE_PREFIX + challenge.id;
+      const key = STORAGE_KEYS.SHUFFLE_PREFIX + challenge.id;
       sessionStorage.removeItem(key);
     });
-    sessionStorage.removeItem(this.INDEX_STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
     this._currentIndex = 0;
   }
 }

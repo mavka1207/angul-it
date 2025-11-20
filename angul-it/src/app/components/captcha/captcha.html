@@ -1,4 +1,5 @@
-<div class="captcha-container" style="text-align: center; margin-top: 4rem;">
+<!-- captcha.html -->
+<div class="captcha-container" @challengeAnim style="text-align: center; margin-top: 4rem;">
   <h2>{{ challenge.question }}</h2>
   
   <div class="grid">
@@ -10,7 +11,7 @@
     </div>
   </div>
 
-  <p *ngIf="errorMessage" style="color: red;">{{ errorMessage }}</p>
+  <p *ngIf="error" style="color: red">{{ error }}</p>
 
   <div class="buttons">
     <button mat-raised-button 

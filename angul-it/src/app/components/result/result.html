@@ -1,14 +1,26 @@
 <!-- result.html -->
 <div @resultFade>
-<mat-card class="container">
-  <mat-card-title>Congratulations! 🎉</mat-card-title>
-  <mat-card-content>
-    <p class="description">
-      You have successfully completed all CAPTCHA challenges!
-    </p>
-    <button mat-raised-button color="primary" (click)="goHome()" class="home-btn">
-      Return to Home
-    </button>
-  </mat-card-content>
-</mat-card>
+  <mat-card class="container">
+    <ng-container *ngIf="isCompleted; else incompleteBlock">
+      <mat-card-title class="result-message">Congratulations! 🎉</mat-card-title>
+      <mat-card-content>
+        <p class="description">
+          You have successfully completed all CAPTCHA challenges!
+        </p>
+        <button mat-raised-button color="primary" (click)="goHome()" class="home-btn">
+          Return to Home
+        </button>
+      </mat-card-content>
+    </ng-container>
+    <ng-template #incompleteBlock>
+      <mat-card-title style="color: red;">
+        {{ incompleteMessage }}
+      </mat-card-title>
+      <mat-card-content *ngIf="showHomeButton">
+        <button mat-raised-button color="primary" (click)="goHome()" class="home-btn">
+          Return to Home
+        </button>
+      </mat-card-content>
+    </ng-template>
+  </mat-card>
 </div>

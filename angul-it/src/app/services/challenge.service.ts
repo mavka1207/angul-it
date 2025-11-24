@@ -33,7 +33,8 @@ export class ChallengeService {
         { url: 'captcha/panda2.png', isCat: false },
         { url: 'captcha/owl1.png', isCat: false },
         { url: 'captcha/owl2.png', isCat: false }
-      ]
+      ],
+      requiredCorrectAnswers: 4
     },
     {
       id: 2,
@@ -52,7 +53,8 @@ export class ChallengeService {
         { url: 'captcha/potion10.png', isPotion: false },
         { url: 'captcha/potion11.png', isPotion: false },
         { url: 'captcha/potion12.png', isPotion: false }
-      ]
+      ],
+      requiredCorrectAnswers: 4
     },
     {
       id: 3,
@@ -71,7 +73,8 @@ export class ChallengeService {
         { url: 'captcha/clock10.png', isClock: false },
         { url: 'captcha/clock11.png', isClock: false },
         { url: 'captcha/clock12.png', isClock: false }
-      ]
+      ],
+      requiredCorrectAnswers: 4
     }
   ];
 
@@ -178,4 +181,31 @@ export class ChallengeService {
     sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
     this._currentIndex = 0;
   }
+
+ 
+
+getFirstIncompleteStage(): number {
+  const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+  for (let i = 0; i < this.baseChallenges.length; i++) {
+    if (!completedStages.includes(i)) {
+      return i; // индекс незавершённого этапа
+    }
+  }
+  return -1; // все завершены
+}
+
+getIncompleteStages(): number[] {
+  const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+  const incomplete: number[] = [];
+  for (let i = 0; i < this.baseChallenges.length; i++) {
+    if (!completedStages.includes(i)) {
+      incomplete.push(i + 1); // номера этапов (1, 2, 3)
+    }
+  }
+  return incomplete;
+}
+
+
+
+  
 }

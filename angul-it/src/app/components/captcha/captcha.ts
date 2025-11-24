@@ -56,21 +56,26 @@ export class Captcha implements OnInit {
 
   checkAnswer(): void {
     const correctIndices = this.getCorrectIndices();
-    const isCorrect = 
+    const isCorrect =
       this.selected.length === correctIndices.length &&
       this.selected.every(i => correctIndices.includes(i));
 
     if (isCorrect) {
-      this.saveState();
+      this.saveState(); // сохраняем только при правильном ответе!
       
+      // Помечаем этап как ЗАВЕРШЁННЫЙ (валидный)
+    const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+    if (!completedStages.includes(this.challengeService.currentIndex)) {
+      completedStages.push(this.challengeService.currentIndex);
+      sessionStorage.setItem('COMPLETED_STAGES', JSON.stringify(completedStages));
+    }
+
       if (this.challengeService.isLast) {
         this.challengeService.clearAllShuffleData();
-        sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
         this.router.navigate(['/result']);
       } else {
         this.challengeService.nextChallenge();
         this.challenge = this.challengeService.getCurrentChallenge();
-        
         const history = this.getSelectionHistory();
         this.selected = history[this.challengeService.currentIndex] || [];
       }
@@ -80,7 +85,7 @@ export class Captcha implements OnInit {
   }
 
   prev(): void {
-    this.saveState();
+    // УБРАЛИ saveState() — не сохраняем при переходе назад!
     this.challengeService.prevChallenge();
     this.challenge = this.challengeService.getCurrentChallenge();
     

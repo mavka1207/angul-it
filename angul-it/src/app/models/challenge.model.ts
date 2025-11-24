@@ -12,6 +12,7 @@ export interface Challenge {
   type: ChallengeType;
   question: string;
   grid: ImageItem[];
+  requiredCorrectAnswers?: number;
 }
 
 // Тип для истории выбора

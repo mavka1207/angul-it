@@ -100,6 +100,28 @@ export class ChallengeService {
   }
 
   private initializeAllChallenges(): void {
+       // Проверяем, есть ли сохранённый порядок этапов
+    const savedOrder = sessionStorage.getItem(STORAGE_KEYS.CHALLENGE_ORDER);
+    
+    let orderedChallenges: Challenge[];
+    
+    if (savedOrder) {
+      // Восстанавливаем сохранённый порядок
+      const orderIndices = JSON.parse(savedOrder);
+      orderedChallenges = orderIndices.map((idx: number) => this.baseChallenges[idx]);
+      console.log('Loaded saved challenge order');
+    } else {
+      // Создаём новый случайный порядок
+      orderedChallenges = this.shuffle([...this.baseChallenges]);
+      
+      // Сохраняем порядок (индексы оригинальных челленджей)
+      const orderIndices = orderedChallenges.map(challenge => 
+        this.baseChallenges.findIndex(c => c.id === challenge.id)
+      );
+      sessionStorage.setItem(STORAGE_KEYS.CHALLENGE_ORDER, JSON.stringify(orderIndices));
+      console.log('Created new random challenge order:', orderIndices);
+    }
+
     this.shuffledChallenges = this.baseChallenges.map(challenge => {
       const savedGrid = this.loadShuffleForStage(challenge.id);
       
@@ -173,14 +195,15 @@ export class ChallengeService {
     }
   }
 
-  clearAllShuffleData(): void {
-    this.baseChallenges.forEach(challenge => {
-      const key = STORAGE_KEYS.SHUFFLE_PREFIX + challenge.id;
-      sessionStorage.removeItem(key);
-    });
-    sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
-    this._currentIndex = 0;
-  }
+ clearAllShuffleData(): void {
+  this.baseChallenges.forEach(challenge => {
+    const key = STORAGE_KEYS.SHUFFLE_PREFIX + challenge.id;
+    sessionStorage.removeItem(key);
+  });
+  sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
+  sessionStorage.removeItem('COMPLETED_STAGES'); // добавить!
+  this._currentIndex = 0;
+}
 
  
 

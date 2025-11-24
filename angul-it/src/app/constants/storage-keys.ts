@@ -9,7 +9,9 @@ export const STORAGE_KEYS = {
   CURRENT_INDEX: 'captcha-current-index',
   
   /** История выбора пользователя для всех этапов */
-  SELECTION_HISTORY: 'captcha-selection-history'
+  SELECTION_HISTORY: 'captcha-selection-history',
+  CHALLENGE_ORDER: 'captcha-challenge-order', 
+  COMPLETED_STAGES: 'captcha-completed-stages' 
 } as const;
 
 /**
@@ -30,7 +32,5 @@ export const CAPTCHA_CONFIG = {
  * Сообщения для пользователя
  */
 export const MESSAGES = {
-  INCORRECT_SELECTION: 'Incorrect selection. Try again.',
-  CONGRATULATIONS: 'Congratulations!',
-  CHALLENGE_COMPLETE: 'You have successfully completed all CAPTCHA challenges!'
+  INCORRECT_SELECTION: 'Please select the correct images and try again.'
 } as const;

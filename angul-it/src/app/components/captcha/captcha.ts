@@ -55,34 +55,43 @@ export class Captcha implements OnInit {
   }
 
   checkAnswer(): void {
-    const correctIndices = this.getCorrectIndices();
-    const isCorrect =
-      this.selected.length === correctIndices.length &&
-      this.selected.every(i => correctIndices.includes(i));
+  const correctIndices = this.getCorrectIndices();
+  const isCorrect =
+    this.selected.length === correctIndices.length &&
+    this.selected.every(i => correctIndices.includes(i));
 
-    if (isCorrect) {
-      this.saveState(); // сохраняем только при правильном ответе!
-      
-      // Помечаем этап как ЗАВЕРШЁННЫЙ (валидный)
+  if (isCorrect) {
+    this.saveState();
+    
+    // Помечаем этап как завершённый
     const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
     if (!completedStages.includes(this.challengeService.currentIndex)) {
       completedStages.push(this.challengeService.currentIndex);
       sessionStorage.setItem('COMPLETED_STAGES', JSON.stringify(completedStages));
     }
 
-      if (this.challengeService.isLast) {
-        this.challengeService.clearAllShuffleData();
-        this.router.navigate(['/result']);
-      } else {
-        this.challengeService.nextChallenge();
-        this.challenge = this.challengeService.getCurrentChallenge();
-        const history = this.getSelectionHistory();
-        this.selected = history[this.challengeService.currentIndex] || [];
+    if (this.challengeService.isLast) {
+      for (let i = 1; i <= 3; i++) {
+        const key = STORAGE_KEYS.SHUFFLE_PREFIX + i;
+        sessionStorage.removeItem(key);
       }
+      sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
+     
+      sessionStorage.removeItem(STORAGE_KEYS.CHALLENGE_ORDER);
+      
+      
+      this.router.navigate(['/result']);
     } else {
-      this.error = MESSAGES.INCORRECT_SELECTION;
+      this.challengeService.nextChallenge();
+      this.challenge = this.challengeService.getCurrentChallenge();
+      const history = this.getSelectionHistory();
+      this.selected = history[this.challengeService.currentIndex] || [];
     }
+  } else {
+    this.error = MESSAGES.INCORRECT_SELECTION;
   }
+}
+
 
   prev(): void {
     // УБРАЛИ saveState() — не сохраняем при переходе назад!

@@ -29,6 +29,7 @@ ngOnInit(): void {
     this.challengeService.clearAllShuffleData();
     sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
     sessionStorage.removeItem('COMPLETED_STAGES');
+    sessionStorage.removeItem(STORAGE_KEYS.CHALLENGE_ORDER);
   }
   startChallenge() {
     // Очищаем все данные перед началом нового челленджа

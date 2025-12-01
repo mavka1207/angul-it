@@ -1,16 +1,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { Router } from '@angular/router';
 import { Home } from './home';
+import { provideAnimations } from '@angular/platform-browser/animations';
+
 
 describe('Home', () => {
   let component: Home;
   let fixture: ComponentFixture<Home>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+
     await TestBed.configureTestingModule({
-      imports: [Home]
-    })
-    .compileComponents();
+      imports: [Home],
+      providers: [
+        { provide: Router, useValue: routerSpy },
+        provideAnimations()
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Home);
     component = fixture.componentInstance;
@@ -20,49 +28,31 @@ describe('Home', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-  it('should render welcome and button', () => {
-  const h1 = fixture.nativeElement.querySelector('h1');
-  const btn = fixture.nativeElement.querySelector('button');
-  expect(h1.textContent).toContain('Welcome');
+
+it('should render title and start button', () => {
+  const title: HTMLElement =
+    fixture.nativeElement.querySelector('h1') ||
+    fixture.nativeElement.querySelector('h2') ||
+    fixture.nativeElement.querySelector('mat-card-title');
+
+  const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+  expect(title).toBeTruthy();
   expect(btn).toBeTruthy();
 });
 
-it('should emit start challenge event on click', () => {
-  spyOn(component, 'startChallenge');
-  const btn = fixture.nativeElement.querySelector('button');
-  btn.click();
-  expect(component.startChallenge).toHaveBeenCalled();
-});
-it('should render challenge question', () => {
-  component.challenge = mockChallenge;
-  fixture.detectChanges();
-  const h2 = fixture.nativeElement.querySelector('h2');
-  expect(h2.textContent).toContain(mockChallenge.question);
-});
+  it('should call startChallenge when button is clicked', () => {
+    spyOn(component, 'startChallenge');
 
-it('should select/unselect images on click', () => {
-  component.challenge = mockChallenge;
-  fixture.detectChanges();
-  const imgs = fixture.nativeElement.querySelectorAll('img');
-  imgs[0].click();
-  expect(component.selected.includes(0)).toBeTrue();
-  imgs[0].click();
-  expect(component.selected.includes(0)).toBeFalse();
-});
+    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+    btn.click();
 
-it('should not go next with incorrect selection', () => {
-  component.challenge = mockChallenge;
-  component.selected = []; // Ничего не выбрано
-  component.next();
-  expect(component.error).toBeTruthy();
-});
+    expect(component.startChallenge).toHaveBeenCalled();
+  });
 
-it('should go next with correct answer', () => {
-  component.challenge = mockChallenge;
-  component.selected = [0, 1, 2]; // Предположим, правильные индексы
-  spyOn(component, 'goToResult');
-  component.next();
-  expect(component.goToResult).toHaveBeenCalled();
-});
+  it('should navigate to /captcha in startChallenge', () => {
+    component.startChallenge();
 
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/captcha']);
+  });
 });

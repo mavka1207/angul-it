@@ -1,152 +1,185 @@
-Multi‑Stage Image CAPTCHA
-This project is an Angular application that implements a multi‑stage image CAPTCHA game.
+# Multi-Stage Image CAPTCHA
+
+This project is an Angular application that implements a multi-stage image CAPTCHA game.
 Users complete three visual challenges (space cats, magic potions, and clocks) in a randomized order, with their progress and selections persisted across navigation.
 
-Features
-Three distinct stages:
+---
 
-Space cats: select all images with a cat in space.
+## Features
 
-Magic potions: select potions with blue liquid and a moon symbol.
+### Three distinct stages
 
-Clocks: select clocks showing the time 3:15.
+* **Space cats**: select all images with a cat in space.
+* **Magic potions**: select potions with blue liquid and a moon symbol.
+* **Clocks**: select clocks showing the time **3:15**.
 
-Randomized stage order per session using a challenge order stored in sessionStorage.
+### Flow & behavior
 
-Per‑stage image shuffle that is persisted and restored when returning to a stage.
+* **Randomized stage order per session** using a challenge order stored in `sessionStorage`.
+* **Per-stage image shuffle** that is persisted and restored when returning to a stage.
+* **Back/forward navigation** between stages with restored user selections.
 
-Back/forward navigation between stages with restored user selections.
+### Result screen
 
-Result screen:
+* Verifies that **all stages have been completed**.
+* Shows a **success message** when everything is done.
+* Redirects the user to the **first incomplete stage** if something is missing.
 
-Verifies that all stages have been completed.
+---
 
-Shows a success message when everything is done.
+## Tech stack
 
-Redirects the user to the first incomplete stage if something is missing.
+* **Angular** (standalone components, Angular CLI 20+)
+* **Angular Router** for navigation between:
 
-Tech stack
-Angular (standalone components, Angular CLI 20+)
+  * Home
+  * CAPTCHA
+  * Result screens
+* **Angular Material**:
 
-Angular Router for navigation between Home, CAPTCHA, and Result screens
+  * `MatButtonModule`
+  * `MatCardModule`
+* **CSS/SCSS** for layout and styling
+* **sessionStorage** for client-side state management
 
-Angular Material:
+---
 
-MatButtonModule
+## Project structure (key parts)
 
-MatCardModule
+### `src/app/components/home`
 
-CSS/SCSS for layout and styling
+Home screen; resets state and starts a new CAPTCHA session.
 
-sessionStorage for client‑side state management
+### `src/app/components/captcha`
 
-Project structure (key parts)
-src/app/components/home
-Home screen, resets state and starts a new CAPTCHA session.
+Main CAPTCHA flow; shows one stage at a time with image selection and validation.
 
-src/app/components/captcha
-Main CAPTCHA flow, one stage at a time with image selection and validation.
+### `src/app/components/result`
 
-src/app/components/result
-Result screen showing completion status or guiding the user back to incomplete stages.
+Result screen that shows completion status or guides the user back to incomplete stages.
 
-src/app/services/challenge.service.ts
+### `src/app/services/challenge.service.ts`
 
-Defines base challenges (cats, potions, clocks).
+* Defines base challenges (cats, potions, clocks).
+* Randomizes stage order and shuffles images per stage.
+* Persists and restores:
 
-Randomizes stage order and shuffles images per stage.
+  * shuffle
+  * current index
+  * completion data
 
-Persists and restores shuffle, current index, and completion data.
+### `src/app/constants/storage-keys.ts`
 
-src/app/constants/storage-keys.ts
-Centralized keys and configuration for sessionStorage and messages.
+Centralized keys and configuration for `sessionStorage` and messages.
 
-src/app/models/challenge.model.ts
+### `src/app/models/challenge.model.ts`
+
 Types for challenges and image items.
 
-State management
-The application relies on sessionStorage to keep the CAPTCHA experience consistent:
+---
 
-captcha-current-index — index of the current stage.
+## State management
 
-captcha-shuffle-stage-* — per‑stage image order.
+The application relies on `sessionStorage` to keep the CAPTCHA experience consistent:
 
-captcha-selection-history — selected image indices for each stage.
-
-captcha-challenge-order — randomized order of stages.
-
-captcha-completed-stages — list of completed stage indices.
+* `captcha-current-index` — index of the current stage.
+* `captcha-shuffle-stage-*` — per-stage image order.
+* `captcha-selection-history` — selected image indices for each stage.
+* `captcha-challenge-order` — randomized order of stages.
+* `captcha-completed-stages` — list of completed stage indices.
 
 This allows:
 
-Reloading the page without losing the current stage order.
+* Reloading the page **without losing** the current stage order.
+* Navigating **back and forth** between stages while keeping selections.
+* Determining which stages are **incomplete** on the Result screen.
 
-Navigating back and forth between stages while keeping selections.
+---
 
-Determining which stages are incomplete on the Result screen.
+## Getting started
 
-Getting started
-Install dependencies:
+### Install dependencies
 
-bash
+```bash
 npm install
-Start the development server:
+```
 
-bash
+### Start the development server
+
+```bash
 ng serve
-Open the app in your browser:
+```
 
-http://localhost:4200/
+### Open the app in your browser
+
+```text
+http://localhost:4201/
+```
 
 The application will automatically reload when you change source files.
 
-Usage flow
-Open the Home screen.
+---
 
-Click the button to start the CAPTCHA challenge.
+## Usage flow
 
-Complete each stage by selecting the correct images and submitting.
+1. Open the **Home** screen.
+2. Click the button to **start the CAPTCHA challenge**.
+3. Complete each stage by selecting the correct images and submitting.
+4. Navigate between stages if needed to adjust your answers.
+5. After all stages are completed, you will be redirected to the **Result** screen:
 
-Navigate between stages if needed to adjust your answers.
+   * If all stages are valid, a **success message** is shown.
+   * If some stages are incomplete, you will be redirected to the **first incomplete** one.
 
-After all stages are completed, you will be redirected to the Result screen:
+---
 
-If all stages are valid, a success message is shown.
+## Building
 
-If some stages are incomplete, you will be redirected to the first incomplete one.
-
-Building
 To create a production build:
 
-bash
+```bash
 ng build
-The build artifacts will be generated in the dist/ directory.
+```
+
+The build artifacts will be generated in the `dist/` directory.
 Production builds are optimized for performance.
 
-Testing
-Unit tests
+---
+
+## Testing
+
+### Unit tests
+
 Run unit tests with Karma:
 
-bash
+```bash
 ng test
+```
+
 This executes the configured test suite for components and services.
 
-End‑to‑end tests
-End‑to‑end (e2e) tests can be run with Cypress (see cypress.config.ts and tests under cypress/ such as responsive.cy.js):
+### End-to-end tests
 
-bash
+End-to-end (e2e) tests can be run with Cypress (see `cypress.config.ts` and tests under `cypress/` such as `responsive.cy.js`):
+
+```bash
 npx cypress open
-or
-
-bash
+# or
 npx cypress run
-Use these tests to verify the user flow, responsiveness, and core CAPTCHA behavior in the browser.
+```
 
-Notes
+Use these tests to verify:
+
+* User flow
+* Responsiveness
+* Core CAPTCHA behavior in the browser
+
+---
+
+## Notes
+
 This project is intended as a demo/learning project for:
 
-Multi‑stage UI flows in Angular.
-
-Managing client‑side state with sessionStorage.
-
-Building small, focused services for game‑like logic.
+* Multi-stage UI flows in Angular.
+* Managing client-side state with `sessionStorage`.
+* Building small, focused services for game-like logic.

@@ -100,21 +100,21 @@ export class ChallengeService {
   }
 
   private initializeAllChallenges(): void {
-       // Проверяем, есть ли сохранённый порядок этапов
+       // Check if a saved challenge order exists
     const savedOrder = sessionStorage.getItem(STORAGE_KEYS.CHALLENGE_ORDER);
     
     let orderedChallenges: Challenge[];
     
     if (savedOrder) {
-      // Восстанавливаем сохранённый порядок
+      // Restore previously saved order
       const orderIndices = JSON.parse(savedOrder);
       orderedChallenges = orderIndices.map((idx: number) => this.baseChallenges[idx]);
       console.log('Loaded saved challenge order');
     } else {
-      // Создаём новый случайный порядок
+      // Create a new random challenge order
       orderedChallenges = this.shuffle([...this.baseChallenges]);
       
-      // Сохраняем порядок (индексы оригинальных челленджей)
+      // Persist order using indices of base challenges
       const orderIndices = orderedChallenges.map(challenge => 
         this.baseChallenges.findIndex(c => c.id === challenge.id)
       );
@@ -201,34 +201,30 @@ export class ChallengeService {
     sessionStorage.removeItem(key);
   });
   sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
-  sessionStorage.removeItem('COMPLETED_STAGES'); // добавить!
+  sessionStorage.removeItem('STORAGE_KEYS.COMPLETED_STAGES'); // добавить!
   this._currentIndex = 0;
 }
 
  
 
 getFirstIncompleteStage(): number {
-  const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+  const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
   for (let i = 0; i < this.baseChallenges.length; i++) {
     if (!completedStages.includes(i)) {
-      return i; // индекс незавершённого этапа
+      return i; // index of the first incomplete stage
     }
   }
-  return -1; // все завершены
+  return -1; // all stages are completed
 }
 
 getIncompleteStages(): number[] {
-  const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+  const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
   const incomplete: number[] = [];
   for (let i = 0; i < this.baseChallenges.length; i++) {
     if (!completedStages.includes(i)) {
-      incomplete.push(i + 1); // номера этапов (1, 2, 3)
+      incomplete.push(i + 1); // human-readable stage numbers (1, 2, 3)
     }
   }
   return incomplete;
 }
-
-
-
-  
 }

@@ -1,59 +1,152 @@
-# AngulIt
+Multi‑Stage Image CAPTCHA
+This project is an Angular application that implements a multi‑stage image CAPTCHA game.
+Users complete three visual challenges (space cats, magic potions, and clocks) in a randomized order, with their progress and selections persisted across navigation.
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.9.
+Features
+Three distinct stages:
 
-## Development server
+Space cats: select all images with a cat in space.
 
-To start a local development server, run:
+Magic potions: select potions with blue liquid and a moon symbol.
 
-```bash
+Clocks: select clocks showing the time 3:15.
+
+Randomized stage order per session using a challenge order stored in sessionStorage.
+
+Per‑stage image shuffle that is persisted and restored when returning to a stage.
+
+Back/forward navigation between stages with restored user selections.
+
+Result screen:
+
+Verifies that all stages have been completed.
+
+Shows a success message when everything is done.
+
+Redirects the user to the first incomplete stage if something is missing.
+
+Tech stack
+Angular (standalone components, Angular CLI 20+)
+
+Angular Router for navigation between Home, CAPTCHA, and Result screens
+
+Angular Material:
+
+MatButtonModule
+
+MatCardModule
+
+CSS/SCSS for layout and styling
+
+sessionStorage for client‑side state management
+
+Project structure (key parts)
+src/app/components/home
+Home screen, resets state and starts a new CAPTCHA session.
+
+src/app/components/captcha
+Main CAPTCHA flow, one stage at a time with image selection and validation.
+
+src/app/components/result
+Result screen showing completion status or guiding the user back to incomplete stages.
+
+src/app/services/challenge.service.ts
+
+Defines base challenges (cats, potions, clocks).
+
+Randomizes stage order and shuffles images per stage.
+
+Persists and restores shuffle, current index, and completion data.
+
+src/app/constants/storage-keys.ts
+Centralized keys and configuration for sessionStorage and messages.
+
+src/app/models/challenge.model.ts
+Types for challenges and image items.
+
+State management
+The application relies on sessionStorage to keep the CAPTCHA experience consistent:
+
+captcha-current-index — index of the current stage.
+
+captcha-shuffle-stage-* — per‑stage image order.
+
+captcha-selection-history — selected image indices for each stage.
+
+captcha-challenge-order — randomized order of stages.
+
+captcha-completed-stages — list of completed stage indices.
+
+This allows:
+
+Reloading the page without losing the current stage order.
+
+Navigating back and forth between stages while keeping selections.
+
+Determining which stages are incomplete on the Result screen.
+
+Getting started
+Install dependencies:
+
+bash
+npm install
+Start the development server:
+
+bash
 ng serve
-```
+Open the app in your browser:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+http://localhost:4200/
 
-## Code scaffolding
+The application will automatically reload when you change source files.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Usage flow
+Open the Home screen.
 
-```bash
-ng generate component component-name
-```
+Click the button to start the CAPTCHA challenge.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Complete each stage by selecting the correct images and submitting.
 
-```bash
-ng generate --help
-```
+Navigate between stages if needed to adjust your answers.
 
-## Building
+After all stages are completed, you will be redirected to the Result screen:
 
-To build the project run:
+If all stages are valid, a success message is shown.
 
-```bash
+If some stages are incomplete, you will be redirected to the first incomplete one.
+
+Building
+To create a production build:
+
+bash
 ng build
-```
+The build artifacts will be generated in the dist/ directory.
+Production builds are optimized for performance.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Testing
+Unit tests
+Run unit tests with Karma:
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
+bash
 ng test
-```
+This executes the configured test suite for components and services.
 
-## Running end-to-end tests
+End‑to‑end tests
+End‑to‑end (e2e) tests can be run with Cypress (see cypress.config.ts and tests under cypress/ such as responsive.cy.js):
 
-For end-to-end (e2e) testing, run:
+bash
+npx cypress open
+or
 
-```bash
-ng e2e
-```
+bash
+npx cypress run
+Use these tests to verify the user flow, responsiveness, and core CAPTCHA behavior in the browser.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Notes
+This project is intended as a demo/learning project for:
 
-## Additional Resources
+Multi‑stage UI flows in Angular.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Managing client‑side state with sessionStorage.
+
+Building small, focused services for game‑like logic.

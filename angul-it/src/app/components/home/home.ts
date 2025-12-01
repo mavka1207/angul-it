@@ -25,16 +25,16 @@ export class Home {
     private router: Router
   ) {}
 ngOnInit(): void {
-    // Очищаем всю историю при заходе на Home
+    // Clear all state when entering the Home screen
     this.challengeService.clearAllShuffleData();
     sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
-    sessionStorage.removeItem('COMPLETED_STAGES');
+    sessionStorage.removeItem('STORAGE_KEYS.COMPLETED_STAGES');
     sessionStorage.removeItem(STORAGE_KEYS.CHALLENGE_ORDER);
   }
   startChallenge() {
-    // Очищаем все данные перед началом нового челленджа
+    // Clear all stored data before starting a new challenge
     this.challengeService.clearAllShuffleData();
-    sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
+    //sessionStorage.removeItem(STORAGE_KEYS.SELECTION_HISTORY);
     this.router.navigate(['/captcha']);
   }
 }

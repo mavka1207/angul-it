@@ -25,6 +25,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ]
 })
+
 export class Captcha implements OnInit {
   challenge!: Challenge;
   selected: number[] = [];
@@ -63,11 +64,11 @@ export class Captcha implements OnInit {
   if (isCorrect) {
     this.saveState();
     
-    // Помечаем этап как завершённый
-    const completedStages = JSON.parse(sessionStorage.getItem('COMPLETED_STAGES') || '[]');
+    // Mark current stage as completed
+    const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
     if (!completedStages.includes(this.challengeService.currentIndex)) {
       completedStages.push(this.challengeService.currentIndex);
-      sessionStorage.setItem('COMPLETED_STAGES', JSON.stringify(completedStages));
+      sessionStorage.setItem('STORAGE_KEYS.COMPLETED_STAGES', JSON.stringify(completedStages));
     }
 
     if (this.challengeService.isLast) {
@@ -92,9 +93,8 @@ export class Captcha implements OnInit {
   }
 }
 
-
   prev(): void {
-    // УБРАЛИ saveState() — не сохраняем при переходе назад!
+    // Removed saveState(): do not persist state when navigating back.
     this.challengeService.prevChallenge();
     this.challenge = this.challengeService.getCurrentChallenge();
     

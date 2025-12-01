@@ -29,15 +29,12 @@ export class Result implements OnInit {
     private challengeService: ChallengeService
   ) {}
 
- 
-
-
-ngOnInit(): void {
-    // Проверяем, существует ли история вообще
+ ngOnInit(): void {
+    // Check if there is any selection history at all
     const historyStr = sessionStorage.getItem(STORAGE_KEYS.SELECTION_HISTORY);
     const history = historyStr ? JSON.parse(historyStr) : null;
 
-    // Если истории нет вообще — значит пользователь не начинал капчу
+   // If there is no history, the user has not started the CAPTCHA
     if (!history || history.length === 0) {
       this.isCompleted = false;
       this.showHomeButton = true;
@@ -49,31 +46,29 @@ ngOnInit(): void {
     const firstIncompleteIdx = this.challengeService.getFirstIncompleteStage();
 
     if (incompleteStages.length === 0) {
-      // Все этапы пройдены
+      // All stages are completed
       this.isCompleted = true;
       this.showHomeButton = false;
     } else if (firstIncompleteIdx === 0) {
-      // Stage 1 не пройден
+      // Stage 1 is not completed
       this.isCompleted = false;
       this.showHomeButton = true;
       this.incompleteMessage = 'You must complete Stages to view the result.';
     } else {
-      // Stage 2 или 3 не пройдены
+      // Stage 2 or 3 is not completed
       this.isCompleted = false;
       this.showHomeButton = false;
       
-      // Формируем сообщение
+      // Build a message listing remaining stages
       const stagesList = incompleteStages.join(', ');
       this.incompleteMessage = `You must complete Stage${incompleteStages.length > 1 ? 's' : ''} ${stagesList} to view the result.`;
       
-      // Редиректим на первый незавершённый этап
+      // Redirect to the first incomplete stage
       this.challengeService.currentIndex = firstIncompleteIdx;
       this.router.navigate(['/captcha']);
     }
   }
-
-
-
+  
   goHome(): void {
     this.router.navigate(['/']);
   }

@@ -1,35 +1,35 @@
 /**
- * Ключи для sessionStorage
+ * Keys used in sessionStorage
  */
 export const STORAGE_KEYS = {
-  /** Префикс для shuffle каждого этапа: captcha-shuffle-stage-1, captcha-shuffle-stage-2, etc. */
+  /** Prefix for per-stage shuffle keys, e.g. captcha-shuffle-stage-1 */
   SHUFFLE_PREFIX: 'captcha-shuffle-stage-',
   
-  /** Текущий индекс этапа */
+  /** Current stage index*/
   CURRENT_INDEX: 'captcha-current-index',
   
-  /** История выбора пользователя для всех этапов */
+  /** User selection history across all stages */
   SELECTION_HISTORY: 'captcha-selection-history',
   CHALLENGE_ORDER: 'captcha-challenge-order', 
   COMPLETED_STAGES: 'captcha-completed-stages' 
 } as const;
 
 /**
- * Конфигурация CAPTCHA
+ * CAPTCHA configuration
  */
 export const CAPTCHA_CONFIG = {
-  /** Общее количество этапов */
+  /** Total number of stages", etc. */
   TOTAL_STAGES: 3,
   
-  /** Количество изображений на каждом этапе */
+  
   IMAGES_PER_STAGE: 12,
   
-  /** Количество правильных изображений на этапе */
+  
   CORRECT_IMAGES_COUNT: 4
 } as const;
 
 /**
- * Сообщения для пользователя
+ * Message for client
  */
 export const MESSAGES = {
   INCORRECT_SELECTION: 'Please select the correct images and try again.'

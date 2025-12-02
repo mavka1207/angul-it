@@ -30,6 +30,10 @@ export class Captcha implements OnInit {
   challenge!: Challenge;
   selected: number[] = [];
   error = '';
+  hint = '';
+  stageCompleted = false;
+  stageCompletedMessage = 'Stage completed. You can review your selection or click Next.';
+
 
   constructor(
     public challengeService: ChallengeService,
@@ -37,13 +41,22 @@ export class Captcha implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (this.challengeService.allStagesCompleted()) {
+      this.router.navigate(['/result']);
+      return;
+    }
+    
     this.challenge = this.challengeService.getCurrentChallenge();
     
     const history = this.getSelectionHistory();
     this.selected = history[this.challengeService.currentIndex] || [];
+    this.stageCompleted = this.isCurrentStageCompleted();
   }
 
   selectImage(index: number): void {
+    if(this.stageCompleted) {
+      return;
+    }
     const idx = this.selected.indexOf(index);
     if (idx > -1) {
       this.selected.splice(idx, 1);
@@ -53,6 +66,13 @@ export class Captcha implements OnInit {
 
     this.updateStorage();
     this.error = '';
+    const correctCount = this.challenge.requiredCorrectAnswers;
+
+if (this.selected.length === correctCount) {
+this.hint = 'You selected all images for this stage. Click "Next" to continue.';
+} else {
+this.hint = '';
+}
   }
 
   checkAnswer(): void {
@@ -65,11 +85,15 @@ export class Captcha implements OnInit {
     this.saveState();
     
     // Mark current stage as completed
-    const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
+    const completedStages = JSON.parse(
+sessionStorage.getItem(STORAGE_KEYS.COMPLETED_STAGES) || '[]'
+);
     if (!completedStages.includes(this.challengeService.currentIndex)) {
-      completedStages.push(this.challengeService.currentIndex);
-      sessionStorage.setItem('STORAGE_KEYS.COMPLETED_STAGES', JSON.stringify(completedStages));
-    }
+completedStages.push(this.challengeService.currentIndex);
+sessionStorage.setItem(STORAGE_KEYS.COMPLETED_STAGES,JSON.stringify(completedStages));
+}
+
+this.stageCompleted = true;
 
     if (this.challengeService.isLast) {
       for (let i = 1; i <= 3; i++) {
@@ -77,7 +101,6 @@ export class Captcha implements OnInit {
         sessionStorage.removeItem(key);
       }
       sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
-     
       sessionStorage.removeItem(STORAGE_KEYS.CHALLENGE_ORDER);
       
       
@@ -87,6 +110,9 @@ export class Captcha implements OnInit {
       this.challenge = this.challengeService.getCurrentChallenge();
       const history = this.getSelectionHistory();
       this.selected = history[this.challengeService.currentIndex] || [];
+      this.stageCompleted = this.isCurrentStageCompleted();
+      this.hint = '';
+      this.error = '';
     }
   } else {
     this.error = MESSAGES.INCORRECT_SELECTION;
@@ -94,12 +120,15 @@ export class Captcha implements OnInit {
 }
 
   prev(): void {
-    // Removed saveState(): do not persist state when navigating back.
+    // Do not persist state when navigating back.
     this.challengeService.prevChallenge();
     this.challenge = this.challengeService.getCurrentChallenge();
     
     const history = this.getSelectionHistory();
     this.selected = history[this.challengeService.currentIndex] || [];
+    this.stageCompleted = this.isCurrentStageCompleted();
+    this.hint = '';
+    this.error = '';
   }
 
   trackByUrl(index: number, item: any): string {
@@ -151,4 +180,11 @@ export class Captcha implements OnInit {
     const stored = sessionStorage.getItem(STORAGE_KEYS.SELECTION_HISTORY);
     return stored ? JSON.parse(stored) : [];
   }
+
+  private isCurrentStageCompleted(): boolean {
+const completedStages = JSON.parse(
+sessionStorage.getItem(STORAGE_KEYS.COMPLETED_STAGES) || '[]'
+);
+return completedStages.includes(this.challengeService.currentIndex);
+}
 }

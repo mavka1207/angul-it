@@ -19,7 +19,7 @@ export class ChallengeService {
     {
       id: 1,
       type: 'selectImages',
-      question: 'Select all images that show a cat in space.',
+      question: 'STAGE 1: Select all images that show a cat in space.',
       grid: [
         { url: 'captcha/cat1.png', isCat: true },
         { url: 'captcha/cat2.png', isCat: true },
@@ -39,7 +39,7 @@ export class ChallengeService {
     {
       id: 2,
       type: 'selectImages',
-      question: 'Select all images that show a magic potion with blue liquid and a moon symbol.',
+      question: 'STAGE 2: Select all images that show a magic potion with blue liquid and a moon symbol.',
       grid: [
         { url: 'captcha/potion1.png', isPotion: true },
         { url: 'captcha/potion2.png', isPotion: true },
@@ -59,7 +59,7 @@ export class ChallengeService {
     {
       id: 3,
       type: 'selectImages',
-      question: 'Select all images where the clock shows 3:15.',
+      question: 'STAGE 3: Select all images where the clock shows 3:15.',
       grid: [
         { url: 'captcha/clock1.png', isClock: true },
         { url: 'captcha/clock2.png', isClock: true },
@@ -201,14 +201,19 @@ export class ChallengeService {
     sessionStorage.removeItem(key);
   });
   sessionStorage.removeItem(STORAGE_KEYS.CURRENT_INDEX);
-  sessionStorage.removeItem('STORAGE_KEYS.COMPLETED_STAGES'); // добавить!
+  sessionStorage.removeItem(STORAGE_KEYS.COMPLETED_STAGES); // добавить!
   this._currentIndex = 0;
 }
 
- 
+ allStagesCompleted(): boolean {
+const completedStages = JSON.parse(
+sessionStorage.getItem(STORAGE_KEYS.COMPLETED_STAGES) || '[]'
+);
+return completedStages.length === this.baseChallenges.length;
+}
 
 getFirstIncompleteStage(): number {
-  const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
+  const completedStages = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.COMPLETED_STAGES) || '[]');
   for (let i = 0; i < this.baseChallenges.length; i++) {
     if (!completedStages.includes(i)) {
       return i; // index of the first incomplete stage
@@ -218,7 +223,7 @@ getFirstIncompleteStage(): number {
 }
 
 getIncompleteStages(): number[] {
-  const completedStages = JSON.parse(sessionStorage.getItem('STORAGE_KEYS.COMPLETED_STAGES') || '[]');
+  const completedStages = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.COMPLETED_STAGES) || '[]');
   const incomplete: number[] = [];
   for (let i = 0; i < this.baseChallenges.length; i++) {
     if (!completedStages.includes(i)) {

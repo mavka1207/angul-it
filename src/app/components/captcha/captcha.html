@@ -1,18 +1,23 @@
 <!-- captcha.html -->
 <div class="captcha-container" @challengeAnim style="text-align: center; margin-top: 4rem;">
   <h2>{{ challenge.question }}</h2>
-  
+
+  <div class="stage-banner" *ngIf="stageCompleted">
+{{ stageCompletedMessage }}
+
+</div>
   <div class="grid">
     <div *ngFor="let img of challenge.grid; index as i; trackBy: trackByUrl"
-         class="tile"
-         [class.selected]="selected.includes(i)"
-         (click)="selectImage(i)">
-      <img [src]="img.url" alt="captcha image" />
+  class="tile"
+  [class.selected]="selected.includes(i)"
+  [class.disabled]="stageCompleted"
+  (click)="selectImage(i)">
+  <img [src]="img.url" alt="captcha image" />
     </div>
   </div>
 
   <p *ngIf="error" style="color: red">{{ error }}</p>
-
+  <p class="hint" *ngIf="hint">{{ hint }}</p>
   <div class="buttons">
     <button mat-raised-button 
             color="accent" 
